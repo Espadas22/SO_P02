@@ -2,25 +2,51 @@
 Sistemas operativos, Grupo 05, Semestre 2023-2
     Programa #02 - Simulación de uso de memoria mediante vector de áreas libres
 
+
 Objetivo:
     Generar una representación visual del método de manejo de memoria de vector
     de áreas libres, utilizado en sistemas linux, donde se represente como la
     disponibilidad de la memoria real afecta la distribución de áreas en el vector 
 
+
 Integrantes:
     Espadas Rodriguez Anthony Jonathan  - 421033621
     Genaro Vidal Hector                 - 421005011
 
+
 Fecha de entrega: 
-    08-06-2023
+    13-06-2023
+
+
+-------------------------    **NOTA IMPORTANTE**    ---------------------------------
+Debido al uso de la biblioteca math.h debe ser compilado con el comando:
+    
+                                "gcc memo -lm"
+
+-------------------------------------------------------------------------------------
+
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 /* Definicion de estructuras */
+typedef struct _nodo NODO;
+typedef struct _lista LISTA;
+
+struct _nodo{                                                                           // Estructura que guarda los grupos de areas libres
+    int inicio;                                                                         // Indica el inicio del area libre
+    int fin;                                                                            // Indica el fin del area libre
+    NODO* siguiente;                                                                    // De existir, apunta a la siguiente area libre
+};
+
+struct _lista{                                                                          // Estructura para agrupar las areas libres de un mismo tamaño
+    int tam;                                                                            // Indica el tamaño de las areas libres de la lista
+    NODO* inicio;                                                                       // Indica el primer nodo de la lista
+};
 
 
 /* Prototipos de funciones */
@@ -28,13 +54,24 @@ void imprimirMemoria();                                                         
 void ejecutarArchivo();                                                                 // Toma y ejecuta las instrucciones del archivo
 void resetarMemorias();                                                                 // Devuelve la memoria y el vetcor de areas libres a su estado inicial
 
+LISTA* crearLista();                                                                    // Reserva la memoria para una nueva lista
+int es_vacia(LISTA* lista);                                                             // Determina si una lista es vacia
+void vaciarAreasLibres ();                                                              // Libera el espacio reservado para las listas
+void generarListas();                                                                   // Genera las listas vacias para el vector de areas libres
+void imprimirLista(LISTA* lista);                                                       // Imprime todos los nodos (areas libres) de una lista
+
+
 /* Variables globales */
-int areasLibres[5] = {0,0,0,0,16};                                                                     // Arreglo que se usara para el vector de areas libres. 
+LISTA* areasLibres[5];                                                                  // Arreglo que se usara para el vector de areas libres. 
 int memoriaReal[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};                                                                    // Arreglo que se usara para la simulacion de la memoria real
 
+
+/* Metodo main */
 int main()
 {
+    generarListas();
     imprimirMemoria();
+    vaciarAreasLibres();
     return (0);
 }
 
@@ -63,7 +100,7 @@ void imprimirMemoria()
             }
             else
             {
-                printf("\t\t   %d\t\t\t%d", j, areasLibres[j]);
+                imprimirLista(areasLibres[j]);
                 j++;
             }
         } 
@@ -80,6 +117,51 @@ void ejecutarArchivo()
 void resetarMemorias()
 {
     /* Defineme prro */
+}
+
+LISTA* crearLista(int tam)
+{
+    LISTA* nueva_lista = (LISTA*) malloc(sizeof(LISTA));
+    nueva_lista -> inicio = NULL;
+    nueva_lista -> tam = tam; 
+    return nueva_lista;
+}
+
+void generarListas()
+{
+    for (int i = 0; i < 5; ++i)
+    {
+        areasLibres[i] = crearLista(pow(2,i));                                          // Crea la lista segun la potencia correspondiente
+    }    
+}
+
+void imprimirLista(LISTA* lista)
+{
+    //printf("\t\t   %d\t\t\t%d", j, areasLibres[j]);
+    printf("\t\t   %d\t\t\t", lista -> tam);                                            // Imprime el tamaño de las areas de la lista
+
+    if (es_vacia(lista))                                                                // Para listas vacias...
+    {
+        printf("--");                                                                   // ... no se imprime informacion
+    }
+    else
+    {
+        // Colocacion de corrimiento de nodos
+    }
+}
+
+void vaciarAreasLibres ()
+{
+    for (int i = 0; i < 5; ++i)
+    {
+        //vaciarLista(areasLibres[i]);                                                    // Vacia todos los nodos
+        free(areasLibres[i]);                                                           // Libera el espacio de la lista
+    }
+}
+
+int es_vacia(LISTA* lista){
+    if(lista->inicio == NULL) return 1;
+    return 0;
 }
 
 /* ------ Conclusiones 
