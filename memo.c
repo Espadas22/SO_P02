@@ -91,27 +91,27 @@ void imprimirMemoria()
     printf("Direccion\tProceso\n");                                                     // Separadores de seccion de memoria real
     for(i = 0; i < 16; ++i)                                                             // Recorre la memoria real para imprimir los procesos
     {
-        printf("   %d\t\t  ", i);                                                       // Imprime la dirección de memoria y el proceso ocupandola
+        printf("   %d\t\t  ", i);                                                       // Imprime la dirección de memoria
 
-        if (memoriaReal[i] != 0)
-            printf("%3d", memoriaReal[i]);
+        if (memoriaReal[i] != 0)                                                        // Si esta ocupada, imprime el proceso que la utiliza
+            printf("%3d", memoriaReal[i]);                                  
         else
-            printf("---");
+            printf("---");                                                              // Si esta vacia no imprime nada
 
         if (i > 8)                                                                      // Comienza a imprimir el vector de areas libres
         {
             if (i == 9)
             {
-                printf("\t\t\tVector de areas libres");
+                printf("\t\t\tVector de areas libres");                                 // Imprime el encabezado
             }
-            else if  (i == 10)
+            else if  (i == 10)                                                          
             {
-                printf("\t\tPotencia\tGrupos disponibles");
+                printf("\t\tPotencia\tGrupos disponibles");                             // Imprime las columnas
             }
             else
             {
-                imprimirLista(areasLibres[j]);
-                j++;
+                imprimirLista(areasLibres[j]);                                          // Imprime la lista correspondiente al vector
+                j++;                                                                    // Aumenta a la proxima lista
             }
         } 
             
@@ -124,17 +124,18 @@ void ejecutarArchivo()
     /* Defineme prro */
 };
 
-void resetarMemorias()
+void resetarMemorias()                                                                  // Funcion usada para regresar la memoria a los valores de inicio
 {
-    /* Defineme prro */
+    vaciarAreasLibres();                                                                // Liberamos las listas actuales
+    generarListas();                                                                    // Creamos las listas nuevas
 };
 
-LISTA* crearLista(int tam)
+LISTA* crearLista(int tam)                                                              // Recibe el tamaño de las areas de la lista
 {
-    LISTA* nueva_lista = (LISTA*) malloc(sizeof(LISTA));
-    nueva_lista -> inicio = NULL;
-    nueva_lista -> tam = tam; 
-    return nueva_lista;
+    LISTA* nueva_lista = (LISTA*) malloc(sizeof(LISTA));                                // Reserva el espacio
+    nueva_lista -> inicio = NULL;                                                       // No asigna inicio
+    nueva_lista -> tam = tam;                                                           // Asigna el tamaño        
+    return nueva_lista;                                                                 // Devuelve la direccion
 };
 
 void generarListas()
@@ -183,8 +184,8 @@ void vaciarAreasLibres ()
     for (int i = 0; i < 5; ++i)
     {
         vaciarLista(areasLibres[i]);                                                    // Vacia todos los nodos
-        free(areasLibres[i]);                                                           // Libera el espacio de la lista
         areasLibres[i] = NULL;                                                          // Se pierde la refrencia
+        free(areasLibres[i]);                                                           // Libera el espacio de la lista
     }
 };
 
@@ -255,9 +256,9 @@ void enlistar(LISTA* lista, NODO* nodo)                                         
         guarda_asientos -> siguiente = nodo;                                            // guarda_asientos apunta a nodo para incluirlo en la cadena
         nodo -> siguiente = acomodador;                                                 // nodo apunta al acomodador para terminar su inclusion
 
+        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierders sus referencias y su espacio es liberado
         free(acomodador);
         free(guarda_asientos);
-        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierders sus referencias y su espacio es liberado
     }
 };
 
