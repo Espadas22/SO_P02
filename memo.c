@@ -54,6 +54,7 @@ struct _lista{                                                                  
 void imprimirMemoria();                                                                 // Muestra en pantalla el uso de memoria y el vector de areas libres
 void ejecutarArchivo();                                                                 // Toma y ejecuta las instrucciones del archivo
 void resetarMemorias();                                                                 // Devuelve la memoria y el vetcor de areas libres a su estado inicial
+void colocarEnMemoria(int idProceso, int tam);                                          // Asigna memoria a un nuevo proceso
 
 LISTA* crearLista();                                                                    // Reserva la memoria para una nueva lista
 int esVacia(LISTA* lista);                                                              // Determina si una lista es vacia
@@ -64,6 +65,11 @@ void imprimirLista(LISTA* lista);                                               
 
 NODO* crearNodo(int inicio, int fin, NODO* siguiente);                                  // Genera un nuevo nodo
 void enlistar(LISTA* lista, NODO* nodo);                                                // Agrega un nodo a una lista
+void borrarNodo(LISTA* lista, int nodoInicio);                                          // Borra un nodo de una lista
+
+
+/* Prototipos Hector */
+
 
 
 /* Variables globales */
@@ -130,6 +136,11 @@ void resetarMemorias()                                                          
     generarListas();                                                                    // Creamos las listas nuevas
 };
 
+void colocarEnMemoria(int idProceso, int tam)                                           // Coloca en memoria un proceso
+{
+
+};
+
 LISTA* crearLista(int tam)                                                              // Recibe el tamaño de las areas de la lista
 {
     LISTA* nueva_lista = (LISTA*) malloc(sizeof(LISTA));                                // Reserva el espacio
@@ -163,8 +174,7 @@ void imprimirLista(LISTA* lista)
     }
     else
     {
-        NODO* corredor = (NODO*) malloc(sizeof(NODO));                                  // Nodo que nos ayudara a recorrer la lista
-        corredor = lista -> inicio;                                                     // Comenzamos al inicio de la lista
+        NODO* corredor = lista -> inicio;                                               // Nodo usado para recorrer la lista
         
         printf("%2d", corredor -> inicio);                                              // El primer numero siempre se imprime
         corredor = corredor -> siguiente;                                               // Avanzamos al siguiente elemento
@@ -206,7 +216,6 @@ void vaciarLista(LISTA* lista)                                                  
         kamikaze = lista -> inicio;                                                     // Regresamos al inicio de la lista        
     };
 
-    free(kamikaze);                                                                     // Despedimos con honores a un nodo muy valiente
     lista -> tam = 0;                                                                   // Eliminanmos el tamaño de la lista
 };
 
@@ -217,6 +226,46 @@ NODO* crearNodo(int inicio, int fin, NODO* siguiente)                           
     nuevo_nodo -> fin = fin;
     nuevo_nodo -> siguiente = siguiente;
     return nuevo_nodo;                                                                  // Se devuelve la direccion de nodo
+};
+
+void borrarNodo(LISTA* lista, int nodoInicio)                                           // Elimina un nodo de una lista
+{
+    if (esVacia(lista))
+        printf("\nLista no tiene elementos\n");                                         // Notifica si la lista es vacía
+    else if (lista -> inicio -> inicio == nodoInicio)                                    // El primer nodo es el buscado                                    
+    {
+        NODO* meseek = lista -> inicio;                                                 // Declara un nodo suicida
+        
+        lista -> inicio = meseek -> siguiente;                                          // Se desplaza el inicio al siguiente (Puede ser NULL)
+        
+        meseek -> siguiente = NULL;                                                     // Eliminamos su referencia a la lista
+        free(meseek);                                                                   // Liberamos el espacio del nodo 
+        meseek = NULL;                                                                  // Eliminamos su refrencia apuntada
+    }
+    else if (lista -> inicio -> siguiente != NULL)                                      // El primer elemento no es el buscado, pero hay mas
+    {
+        NODO* localizador = lista -> inicio -> siguiente;                               // Nodo que nos ayudara a encontrar la posicion buscada
+        NODO* reemplazo = lista -> inicio;                                              // Nodo auxiliar en la eliminacion
+
+        while(localizador != NULL)                                                      // Recorre la lista hasta llegar al final
+        {
+            if (localizador -> inicio == nodoInicio)                                     // Cuando se localiza el nodo a borrar
+            {
+                reemplazo -> siguiente = localizador -> siguiente;                      // Se omite el nodo localizado de la lista
+                localizador -> siguiente = NULL;                                        // Localizador pierde su referencia a lista
+                free(localizador);                                                      // Se libera el espacio ocupado por el nodo
+                localizador = reemplazo = NULL;                                         // Ambos nodos pierden sus referencias
+                return;                                                                 // La funcion finaliza
+            }
+            else                                                                        // Cuando no coinciden, se avanza a las siguientes posiciones
+            {
+                localizador = localizador -> siguiente;
+                reemplazo = reemplazo -> siguiente;
+            }
+        };
+
+        printf("\nLa lista no cuenta con ese nodo\n");                                  // Se notifica que no se enocntro
+    };
 };
 
 void enlistar(LISTA* lista, NODO* nodo)                                                 // Recibe la lista y el nodo a agregar
@@ -238,11 +287,8 @@ void enlistar(LISTA* lista, NODO* nodo)                                         
     }
     else                                                                                // Hay que buscar en los nodos siguientes
     {
-        NODO* acomodador = (NODO*) malloc(sizeof(NODO));                                // Nodo que nos ayudara a encontrar nuestro espacio
-        NODO* guarda_asientos = (NODO*) malloc(sizeof(NODO));                           // Nodo que nos ayudara a guardar una posicion
-        
-        acomodador = lista -> inicio -> siguiente;                                      // Se inicia en el segundo nodo
-        guarda_asientos = lista -> inicio;                                              // Se inicia en el primer nodo
+        NODO* acomodador = lista -> inicio -> siguiente;                                // Nodo que nos ayudara a encontrar nuestro espacio
+        NODO* guarda_asientos = lista -> inicio;                                        // Nodo que nos ayudara a guardar una posicion
 
         while (nodo -> inicio > acomodador -> inicio)                                   // Mientras el inicio del nodo sea mayor que el nodo en la lista
         {
@@ -256,11 +302,17 @@ void enlistar(LISTA* lista, NODO* nodo)                                         
         guarda_asientos -> siguiente = nodo;                                            // guarda_asientos apunta a nodo para incluirlo en la cadena
         nodo -> siguiente = acomodador;                                                 // nodo apunta al acomodador para terminar su inclusion
 
-        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierders sus referencias y su espacio es liberado
-        free(acomodador);
-        free(guarda_asientos);
+        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierders sus referencias
     }
 };
+
+/*****************         Funciones Hector
+
+
+
+
+
+********************************************************/
 
 /* ------ Conclusiones 
 
