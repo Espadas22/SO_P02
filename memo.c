@@ -66,6 +66,7 @@ void imprimirLista(LISTA* lista);                                               
 NODO* crearNodo(int inicio, int fin, NODO* siguiente);                                  // Genera un nuevo nodo
 void enlistar(LISTA* lista, NODO* nodo);                                                // Agrega un nodo a una lista
 void borrarNodo(LISTA* lista, int nodoInicio);                                          // Borra un nodo de una lista
+void dividirNodo(int tam);                                                              // Divide la lista del tamaño indicado
 
 
 /* Prototipos Hector */
@@ -193,8 +194,8 @@ void vaciarAreasLibres ()
     for (int i = 0; i < 5; ++i)
     {
         vaciarLista(areasLibres[i]);                                                    // Vacia todos los nodos
-        areasLibres[i] = NULL;                                                          // Se pierde la refrencia
         free(areasLibres[i]);                                                           // Libera el espacio de la lista
+        areasLibres[i] = NULL;                                                          // Se pierde la refrencia
     }
 };
 
@@ -214,8 +215,6 @@ void vaciarLista(LISTA* lista)                                                  
         free(kamikaze);                                                                 // Se libera el espacio reservado
         kamikaze = lista -> inicio;                                                     // Regresamos al inicio de la lista        
     };
-
-    lista -> tam = 0;                                                                   // Eliminanmos el tamaño de la lista
 };
 
 NODO* crearNodo(int inicio, int fin, NODO* siguiente)                                   // Se reciben los parámetros
@@ -303,6 +302,49 @@ void enlistar(LISTA* lista, NODO* nodo)                                         
 
         acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierden sus referencias
     }
+};
+
+void dividirNodo(int tam)                                                               // Recibe el tamaño del nodo que se quiere dividir
+{
+    if (tam == 1)                                                                       // Cuando se solitica dividir un area con valor 1
+    {
+        printf("Las particiones individuales no puede ser divididas\n");                // Notifica que no es posible dividr
+    }
+    else if (tam == 32)                                                                 // Se sobrepasan los grupos de 16
+    {
+        printf("\nNo hay bloques divisibles para este tamanio\n");                      // Se notifica que no hay bloques para dividir
+        return;                                                                         // La funcion termina
+    }
+    else                                                                                // El tamaño solicitado es un valor en rango
+    {
+        int i = 0;                                                                      // Variable auxiliar al conteo
+
+        for ( ; i < 5; ++i)                                                             // Recorremos las areasLibres para encontrar la lista de ese tamaño
+        {
+            if (areasLibres[i] -> tam == tam)                                           // Cuandos se encuentra la coincidencia
+            {
+                break;                                                                  // Salimos del ciclo for
+            };
+        };
+
+        if (areasLibres[i] -> inicio == NULL)                                           // Si la lista esta vacia, se solicita al siguiente tamaño una particion
+            dividirNodo(tam*2);
+        else                                                                            // Hay al menos una particion disponible
+        {
+            // Se crean los nuevos nodos para colocar en la lista
+            NODO* nodoIzquierdo = crearNodo(areasLibres[i] -> inicio -> inicio, (areasLibres[i] -> inicio -> inicio + tam/2) - 1, NULL);
+            NODO* nodoDerecho = crearNodo((areasLibres[i] -> inicio -> inicio + tam/2), (areasLibres[i] -> inicio -> inicio + tam) - 1, NULL); 
+
+            // Se mandan a la ista en orden para falicitar su agregamiento
+            enlistar(areasLibres[i-1], nodoDerecho);
+            enlistar(areasLibres[i-1], nodoIzquierdo);
+
+            // Se elimina el nodo original divido
+            borrarNodo(areasLibres[i], areasLibres[i] -> inicio -> inicio);
+        }
+
+    };
+
 };
 
 /*****************         Funciones Hector
