@@ -112,7 +112,7 @@ void imprimirMemoria()
             }
             else if  (i == 10)                                                          
             {
-                printf("\t\tPotencia\tGrupos disponibles");                             // Imprime las columnas
+                printf("\t\tTamanios\tGrupos disponibles");                             // Imprime las columnas
             }
             else
             {
@@ -159,8 +159,7 @@ void generarListas()
         memoriaReal[i] = 0;                                                             // Coloca los valores de inicio en la memoria real
     }
 
-    NODO* primer_bloque = (NODO*) malloc(sizeof(NODO));                                 // Generamos el primer bloque de la lista
-    primer_bloque = crearNodo(0, 15, NULL);                                             // Le asignamos espacio
+    NODO* primer_bloque = crearNodo(0, 15, NULL);                                       // Creamos el primer bloque de memoria
     enlistar(areasLibres[4], primer_bloque);                                            // Lo enviamos a la lista correspondiente    
 };
 
@@ -234,7 +233,7 @@ void borrarNodo(LISTA* lista, int nodoInicio)                                   
         printf("\nLista no tiene elementos\n");                                         // Notifica si la lista es vacía
     else if (lista -> inicio -> inicio == nodoInicio)                                    // El primer nodo es el buscado                                    
     {
-        NODO* meseek = lista -> inicio;                                                 // Declara un nodo suicida
+        NODO* meseek = lista -> inicio;                                                 // Declaramos un nodo suicida
         
         lista -> inicio = meseek -> siguiente;                                          // Se desplaza el inicio al siguiente (Puede ser NULL)
         
@@ -302,7 +301,7 @@ void enlistar(LISTA* lista, NODO* nodo)                                         
         guarda_asientos -> siguiente = nodo;                                            // guarda_asientos apunta a nodo para incluirlo en la cadena
         nodo -> siguiente = acomodador;                                                 // nodo apunta al acomodador para terminar su inclusion
 
-        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierders sus referencias
+        acomodador = guarda_asientos = NULL;                                            // Ambos nodos pierden sus referencias
     }
 };
 
