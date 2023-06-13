@@ -68,20 +68,21 @@ void enlistar(LISTA* lista, NODO* nodo);                                        
 void borrarNodo(LISTA* lista, int nodoInicio);                                          // Borra un nodo de una lista
 void dividirNodo(int tam);                                                              // Divide la lista del tamaño indicado
 
-
-/* Prototipos Hector */
-
+int LeerProcesos(int idProceso,int numpags, char a[30]);                                // Hace la lectura del archivo de forma directa
+int LeerSigProcesos(int idProceso,int numpags, char a[30]);                             // Permite ingresar el nombre del archivo
 
 
 /* Variables globales */
 LISTA* areasLibres[5];                                                                  // Arreglo que se usara para el vector de areas libres. 
 int memoriaReal[16];                                                                    // Arreglo que se usara para la simulacion de la memoria real
+FILE* flujo;                                                                            // Variable usada para abrir los archivos 
 
 
 /* Metodo main */
 int main()
 {
     generarListas();
+    ejecutarArchivo();
     imprimirMemoria();
     vaciarAreasLibres();
     return (0);
@@ -128,7 +129,22 @@ void imprimirMemoria()
 
 void ejecutarArchivo()
 {
-    /* Defineme prro */
+    int idProceso, numpags, c;
+    char a[30], Op;
+
+    if(LeerSigProcesos(idProceso, numpags, a)==1){                                      // Primera lectura de archivo con procesos
+        LeerSigProcesos(idProceso, numpags, a);
+    }
+
+    while (Op != 'n') {                                                                 // While para seguir recibiendo archivos txt con procesos
+        printf("¿Desea agregar otro archivo con procesos? S/N\n");
+        scanf(" %c", &Op);
+        if (Op == 's') {
+            LeerSigProcesos(idProceso, numpags, a);
+        }
+        while ((c = getchar()) != '\n' && c != EOF) { }                                 // Permite limpiar el buffer y evita la repetición del printf
+    }
+    return;
 };
 
 void resetarMemorias()                                                                  // Funcion usada para regresar la memoria a los valores de inicio
@@ -230,7 +246,7 @@ void borrarNodo(LISTA* lista, int nodoInicio)                                   
 {
     if (esVacia(lista))
         printf("\nLista no tiene elementos\n");                                         // Notifica si la lista es vacía
-    else if (lista -> inicio -> inicio == nodoInicio)                                    // El primer nodo es el buscado                                    
+    else if (lista -> inicio -> inicio == nodoInicio)                                   // El primer nodo es el buscado                                    
     {
         NODO* meseek = lista -> inicio;                                                 // Declaramos un nodo suicida
         
@@ -247,7 +263,7 @@ void borrarNodo(LISTA* lista, int nodoInicio)                                   
 
         while(localizador != NULL)                                                      // Recorre la lista hasta llegar al final
         {
-            if (localizador -> inicio == nodoInicio)                                     // Cuando se localiza el nodo a borrar
+            if (localizador -> inicio == nodoInicio)                                    // Cuando se localiza el nodo a borrar
             {
                 reemplazo -> siguiente = localizador -> siguiente;                      // Se omite el nodo localizado de la lista
                 localizador -> siguiente = NULL;                                        // Localizador pierde su referencia a lista
@@ -335,25 +351,40 @@ void dividirNodo(int tam)                                                       
             NODO* nodoIzquierdo = crearNodo(areasLibres[i] -> inicio -> inicio, (areasLibres[i] -> inicio -> inicio + tam/2) - 1, NULL);
             NODO* nodoDerecho = crearNodo((areasLibres[i] -> inicio -> inicio + tam/2), (areasLibres[i] -> inicio -> inicio + tam) - 1, NULL); 
 
-            // Se mandan a la ista en orden para falicitar su agregamiento
+            // Se mandan a la lista en orden para falicitar su agregamiento
             enlistar(areasLibres[i-1], nodoDerecho);
             enlistar(areasLibres[i-1], nodoIzquierdo);
 
             // Se elimina el nodo original divido
             borrarNodo(areasLibres[i], areasLibres[i] -> inicio -> inicio);
-        }
+        };
 
     };
 
 };
 
-/*****************         Funciones Hector
+int LeerProcesos(int idProceso,int numpags, char a[30]){    
+    flujo=fopen(a,"r");                                                                 // Se asigna el apuntador al archivo
 
+    if(flujo == NULL){                                                                  // Se verifica que se pueda abrir el archivo
+        perror("Error al leer el archivo con los procesos");
+        return 1;
+    }
+    while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
+        fscanf(flujo, "%d%d", &idProceso, &numpags);
+        printf("%d %d\n", idProceso, numpags);
+    }
 
+    fclose(flujo);                                                                      // Se cierra el archivo y se notifica la correcta lectura
+    printf("\nSe han leido los procesos de manera correcta\n");
+    return 0; 
+}
 
-
-
-********************************************************/
+int LeerSigProcesos(int idProceso,int numpags, char a[30]){
+    printf("Proporciona el nombre del archivo con los procesos: ");
+    scanf("%s",a);                                                                      // Recibe el nombre del archivo e inicia la lectura del mismo
+    return LeerProcesos(idProceso, numpags, a);                                         // En caso de haber un error
+}
 
 /* ------ Conclusiones 
 
