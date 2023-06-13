@@ -25,9 +25,6 @@ Fecha de entrega:
     
                                 "gcc memo -lm"
 
-
-    ** No se deben dejar saltos de página al finald de los archivos para lectura
-
 -------------------------------------------------------------------------------------
 
 */
@@ -89,6 +86,8 @@ FILE* flujo;                                                                    
 int main()
 {
     generarListas();                                                                    // Crea los espacios en memoria para las lista e inicia las memorias
+    printf("\n-- Memoria inicial:\n");                                                  // Mostramos la organizacion inicial de la memoria
+    imprimirMemoria();
     ejecutarArchivo();                                                                  // Abre archivos con instrucciones para simular el uso de memoria
     vaciarAreasLibres();                                                                // Se libera el espacio que este siendo usado por el programa
     return (0);
@@ -147,6 +146,10 @@ void ejecutarArchivo()
         printf("\n¿Desea agregar otro archivo con procesos? S/N\n");
         scanf(" %c", &Op);
         if (Op == 's') {
+            resetarMemorias();                                                          // Se devuelve le memoria a su estado inicial
+            system("clear");
+            printf("\n-- Memoria inicial:\n");
+            imprimirMemoria();
             LeerSigProcesos(idProceso, numpags, a);
         }
         while ((c = getchar()) != '\n' && c != EOF) { }                                 // Permite limpiar el buffer y evita la repetición del printf
@@ -399,6 +402,7 @@ void dividirNodo(int tam)                                                       
 };
 
 int LeerProcesos(int idProceso,int numpags, char a[30]){    
+    int Proceso=0, Pags=0;                                                              // Variables de control para duplicados
     flujo=fopen(a,"r");                                                                 // Se asigna el apuntador al archivo
 
     if(flujo == NULL){                                                                  // Se verifica que se pueda abrir el archivo
@@ -407,15 +411,18 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
     }
     while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
         fscanf(flujo, "%d%d", &idProceso, &numpags);
-        
-        colocarEnMemoria(idProceso, numpags);                                           // Envía la solicitud de area a el vector
+        if((Proceso!=idProceso) && (Pags!=numpags)){                                    // Evita los duplicados
+            colocarEnMemoria(idProceso, numpags);                                       // Envía la solicitud de area a el vector
         
         if (numpags == -1)
-            printf("\n-- El proceso %d termino su ejecucion", idProceso);               // Notifica borrado
+            printf("\n-- El proceso %d termino su ejecucion\n", idProceso);              // Notifica borrado
         else
             printf("\n-- Se asignaron %d de memoria al proceso %d:\n", numpags, idProceso); // Se notifica la accion
         
         imprimirMemoria();                                                              // Me muestra el nuevo estado de las memorias
+        Proceso=idProceso;                                                              // Las variables control toman el valor leido
+        Pags=numpags;
+        }
     }
 
     fclose(flujo);                                                                      // Se cierra el archivo y se notifica la correcta lectura
@@ -506,19 +513,28 @@ void unirAreasLibres()                                                          
 /* ------ Conclusiones 
 
 Espadas:
-    El trtabajar en este programa me permitió retomar los conocimientos adquiridos en la clade de estructuras de datos y fundamentos
+    El trabajar en este programa me permitió retomar los conocimientos adquiridos en la clade de estructuras de datos y fundamentos
     de programación, ya que el manejo de listas y apuntadores es fundamental para que este programa ralice de forma correcta. La 
     implementaciñón de las funciones como parte fundamental del proyecto nos permitió trabajar como equipo en activiades separadas que
     podían conjuntarse a futuro sin intervenir entre sí. 
 
     Tener que pensar en las consideraciones necesarias para implementar un sistema que distribuyese la memoria, requerió de la implementación
-    de las técnicas revisadas en clase bajo una libre interpretación de la estructura de datos óptima para llevar este control, lo que me
+    de las técnicas revisadas en clase bajo una libre interpretación de la estructura de datos óptima para llevar este control, lo que nos
     permitió resolver el problema con la aplicación de técnicas revisadas, en especial el sistema buddy.
 
-    Como anotación destacada, me pareció muy eficiente como, bajo la configuración de estructuras y funciones adecuadas, la el arreglo 
-    de memorias y el vector de áreas libres podían mantener una integridad simple pero eficiente.       
+    Como anotación destacada, me pareció muy eficiente como, bajo la configuración de estructuras y funciones adecuadas, el arreglo de memorias 
+    y el vector de áreas libres podían mantener una integridad simple pero eficiente de los datos, lográndose el objetivo de obtener la posición
+    óptima de inserción mediante.       
 
 Genaro:
+    En conclusión, el crear un simulador de gestor de memoria permite identificar los principales desafíos de asignar procesos de manera correcta 
+    como, por ejemplo, el dividir la memoria para asignarla a un proceso de menor tamaño y volver a unir las páginas de memoria  si ya se liberó, 
+    debido a que se tenía que considerar que los segmentos de memoria (nodos) solo pueden unirse s anteriormente fueron divididos, de esta manera 
+    se conserva la integridad de la lista que simula las direcciones de memoria.
     
-
+    Por otra parte, para el manejo del vector de áreas libres al actualizar los espacios debe ser sincronizado evitar que existan errores como 
+    disponer de recursos suficientes pero no poder asignarlo debido a una desactualización del vector y la lista que simula la memoria real.
+    
+    Por último, aprender a como maneja Linux los archivos u operaciones de Entrada/Salida a diferencia de Windows es necesario para evitar errores
+    de lectura generalmente ocasionados por un mal uso del buffer generando duplicidad de los procesos o impresiones en pantalla.
 */
