@@ -20,9 +20,13 @@ Fecha de entrega:
 
 
 -------------------------    **NOTA IMPORTANTE**    ---------------------------------
-Debido al uso de la biblioteca math.h debe ser compilado con el comando:
+
+    ** Debido al uso de la biblioteca math.h debe ser compilado con el comando:
     
                                 "gcc memo -lm"
+
+
+    ** No se deben dejar saltos de página al finald de los archivos para lectura
 
 -------------------------------------------------------------------------------------
 
@@ -86,7 +90,6 @@ int main()
 {
     generarListas();                                                                    // Crea los espacios en memoria para las lista e inicia las memorias
     ejecutarArchivo();                                                                  // Abre archivos con instrucciones para simular el uso de memoria
-    imprimirMemoria();
     vaciarAreasLibres();                                                                // Se libera el espacio que este siendo usado por el programa
     return (0);
 }
@@ -97,8 +100,7 @@ void imprimirMemoria()
 {
     int i, j = 0;                                                                       // Variables auxiliares de conteo
 
-    system("clear");                                                                    // Limpia la pantalla
-    printf("\tMemoria real\n");                                                         // Encabezado de la tabla de memoria real
+    printf("\n\tMemoria real\n");                                                       // Encabezado de la tabla de memoria real
     printf("Direccion\tProceso\n");                                                     // Separadores de seccion de memoria real
     for(i = 0; i < 16; ++i)                                                             // Recorre la memoria real para imprimir los procesos
     {
@@ -127,7 +129,9 @@ void imprimirMemoria()
         } 
             
         printf("\n");                                                                   // Coloca el salto de renglon
-    }
+    };
+
+    printf("\n");                                                                       // Espacio en blanco de cortesia
 }
 
 void ejecutarArchivo()
@@ -140,7 +144,7 @@ void ejecutarArchivo()
     }
 
     while (Op != 'n') {                                                                 // While para seguir recibiendo archivos txt con procesos
-        printf("¿Desea agregar otro archivo con procesos? S/N\n");
+        printf("\n¿Desea agregar otro archivo con procesos? S/N\n");
         scanf(" %c", &Op);
         if (Op == 's') {
             LeerSigProcesos(idProceso, numpags, a);
@@ -160,7 +164,7 @@ void colocarEnMemoria(int idProceso, int tam)                                   
 {
     if (tam == -1)                                                                      // Señalización de fin
     {
-        eliminarProceso(idProceso);                                                    // Elimina el proceso de la memoria
+        eliminarProceso(idProceso);                                                     // Elimina el proceso de la memoria
         return;
     };
 
@@ -230,7 +234,7 @@ void imprimirLista(LISTA* lista)
         
         while (corredor != NULL)                                                        // Se continua mientras corredor apunte a un nodo
         {
-            printf(" %c%c %d", '<', '-', corredor -> inicio);                                  // Imprime la siguiente area
+            printf(" %c%c %d", '<', '-', corredor -> inicio);                           // Imprime la siguiente area
             corredor = corredor -> siguiente;                                           // Avanzamos al siguiente nodo
         };
 
@@ -387,7 +391,7 @@ void dividirNodo(int tam)                                                       
         enlistar(areasLibres[i-1], nodoDerecho);
         enlistar(areasLibres[i-1], nodoIzquierdo);
 
-        // Se elimina el nodo original divido
+        // Se elimina el nodo original divido   
         borrarNodo(areasLibres[i], areasLibres[i] -> inicio -> inicio);
 
     };
@@ -403,8 +407,15 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
     }
     while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
         fscanf(flujo, "%d%d", &idProceso, &numpags);
+        
         colocarEnMemoria(idProceso, numpags);                                           // Envía la solicitud de area a el vector
-        printf("%d %d\n", idProceso, numpags);
+        
+        if (numpags == -1)
+            printf("\n-- El proceso %d termino su ejecucion", idProceso);               // Notifica borrado
+        else
+            printf("\n-- Se asignaron %d de memoria al proceso %d:\n", numpags, idProceso); // Se notifica la accion
+        
+        imprimirMemoria();                                                              // Me muestra el nuevo estado de las memorias
     }
 
     fclose(flujo);                                                                      // Se cierra el archivo y se notifica la correcta lectura
@@ -495,7 +506,17 @@ void unirAreasLibres()                                                          
 /* ------ Conclusiones 
 
 Espadas:
-    
+    El trtabajar en este programa me permitió retomar los conocimientos adquiridos en la clade de estructuras de datos y fundamentos
+    de programación, ya que el manejo de listas y apuntadores es fundamental para que este programa ralice de forma correcta. La 
+    implementaciñón de las funciones como parte fundamental del proyecto nos permitió trabajar como equipo en activiades separadas que
+    podían conjuntarse a futuro sin intervenir entre sí. 
+
+    Tener que pensar en las consideraciones necesarias para implementar un sistema que distribuyese la memoria, requerió de la implementación
+    de las técnicas revisadas en clase bajo una libre interpretación de la estructura de datos óptima para llevar este control, lo que me
+    permitió resolver el problema con la aplicación de técnicas revisadas, en especial el sistema buddy.
+
+    Como anotación destacada, me pareció muy eficiente como, bajo la configuración de estructuras y funciones adecuadas, la el arreglo 
+    de memorias y el vector de áreas libres podían mantener una integridad simple pero eficiente.       
 
 Genaro:
     
