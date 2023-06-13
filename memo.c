@@ -411,8 +411,11 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
     }
     while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
         fscanf(flujo, "%d%d", &idProceso, &numpags);
-        if((Proceso!=idProceso) && (Pags!=numpags)){                                    // Evita los duplicados
-            colocarEnMemoria(idProceso, numpags);                                       // Envía la solicitud de area a el vector
+        
+        if((Proceso == idProceso) && (Pags == numpags))                                // Evita los duplicados
+            continue;                                                                   // Se mite en el ciclo    
+        
+        colocarEnMemoria(idProceso, numpags);                                           // Envía la solicitud de area a el vector
         
         if (numpags == -1)
             printf("\n-- El proceso %d termino su ejecucion\n", idProceso);              // Notifica borrado
@@ -420,9 +423,8 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
             printf("\n-- Se asignaron %d de memoria al proceso %d:\n", numpags, idProceso); // Se notifica la accion
         
         imprimirMemoria();                                                              // Me muestra el nuevo estado de las memorias
-        Proceso=idProceso;                                                              // Las variables control toman el valor leido
-        Pags=numpags;
-        }
+        Proceso = idProceso;                                                            // Las variables control toman el valor leido
+        Pags = numpags;
     }
 
     fclose(flujo);                                                                      // Se cierra el archivo y se notifica la correcta lectura
