@@ -73,6 +73,7 @@ int LeerProcesos(int idProceso,int numpags, char a[30]);                        
 int LeerSigProcesos(int idProceso,int numpags, char a[30]);                             // Permite ingresar el nombre del archivo
 
 void eliminarProceso(int idProceso);                                                    // Saca de la memoria las referencias a un proceso
+int existeProceso(int idProceso);                                                       // Verifica si el proceso ya esta en memoria
 void unirAreasLibres();                                                                 // Reune las areas contiguas que fueron separadas
 
 
@@ -86,6 +87,7 @@ FILE* flujo;                                                                    
 int main()
 {
     generarListas();                                                                    // Crea los espacios en memoria para las lista e inicia las memorias
+    system("clear");
     printf("\n-- Memoria inicial:\n");                                                  // Mostramos la organizacion inicial de la memoria
     imprimirMemoria();
     ejecutarArchivo();                                                                  // Abre archivos con instrucciones para simular el uso de memoria
@@ -412,9 +414,12 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
     while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
         fscanf(flujo, "%d%d", &idProceso, &numpags);
         
-        if((Proceso == idProceso) && (Pags == numpags))                                // Evita los duplicados
+        if((Proceso == idProceso) && (Pags == numpags))                                 // Evita los duplicados
             continue;                                                                   // Se mite en el ciclo    
         
+        if (existeProceso(idProceso) && (numpags != -1))                                // Verificamos si el proceso no esta en memoria
+            continue;                                                                   // Si esta, se omite la inclusion
+
         colocarEnMemoria(idProceso, numpags);                                           // Envía la solicitud de area a el vector
         
         if (numpags == -1)
@@ -465,6 +470,23 @@ void eliminarProceso(int idProceso)                                             
     nuevo_espacio = NULL;                                                               // Perdemos la referencia al nodo
 
     unirAreasLibres();                                                                  // Reunifica los espacios contiguos
+};
+
+int existeProceso(int idProceso)                                                        // Recibe el proceso a buscar
+{
+    int verificacion = 0;                                                               // Bandera de existencia
+    
+    for (int i = 0; i < 16; ++i)                                                        // Recorre la memoria real
+    {
+        if (memoriaReal[i] == idProceso)                                                // Compara con los elementos en memoria
+        {
+            printf("\nEl proceso %d ya se encuentra en memoria\n", idProceso);          // Se notifica que existe
+            verificacion = 1;                                                           // Se cambia la bandera
+            break;                                                                      // Finaliza el ciclo
+        }
+    }
+
+    return verificacion;                                                                // Regresa el resultado de la consulta
 };
 
 void unirAreasLibres()                                                                  // Unifica las areas separadas
