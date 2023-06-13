@@ -71,6 +71,9 @@ void dividirNodo(int tam);                                                      
 int LeerProcesos(int idProceso,int numpags, char a[30]);                                // Hace la lectura del archivo de forma directa
 int LeerSigProcesos(int idProceso,int numpags, char a[30]);                             // Permite ingresar el nombre del archivo
 
+void eliminarProceso(int idProceso);                                                    // Saca de la memoria las referencias a un proceso
+void unirAreasLibres();                                                                 // Reune las areas contiguas que fueron separadas
+
 
 /* Variables globales */
 LISTA* areasLibres[5];                                                                  // Arreglo que se usara para el vector de areas libres. 
@@ -81,10 +84,10 @@ FILE* flujo;                                                                    
 /* Metodo main */
 int main()
 {
-    generarListas();
-    ejecutarArchivo();
+    generarListas();                                                                    // Crea los espacios en memoria para las lista e inicia las memorias
+    ejecutarArchivo();                                                                  // Abre archivos con instrucciones para simular el uso de memoria
     imprimirMemoria();
-    vaciarAreasLibres();
+    vaciarAreasLibres();                                                                // Se libera el espacio que este siendo usado por el programa
     return (0);
 }
 
@@ -155,7 +158,37 @@ void resetarMemorias()                                                          
 
 void colocarEnMemoria(int idProceso, int tam)                                           // Coloca en memoria un proceso
 {
+    if (tam == -1)                                                                      // Señalización de fin
+    {
+        eliminarProceso(idProceso);                                                    // Elimina el proceso de la memoria
+        return;
+    };
 
+    int i = 0;                                                                          // Variable auxiliar al conteo
+
+    for ( ; i < 5; ++i)                                                                 // Recorremos las areasLibres para encontrar la lista de ese tamaño
+    {
+        if (areasLibres[i] -> tam == tam)                                               // Cuandos se encuentra la coincidencia
+        {
+            break;                                                                      // Salimos del ciclo for
+        };
+    };
+
+    if (areasLibres[i] -> inicio == NULL)                                               // Si la lista esta vacia, se solicita al siguiente tamaño una particion
+        dividirNodo(tam*2);
+
+    NODO* limites = areasLibres[i] -> inicio;                                           // Nodo auxiliar que nos dice el area asignada al proceso
+
+    for(int j = limites -> inicio; j <= limites -> fin; ++j)                            // Usamos el nodo para definir limites
+    {
+        memoriaReal[j] = idProceso;                                                     // Se marca la memoria usada por el proceso
+    };
+
+    areasLibres[i] -> inicio = limites -> siguiente;                                    // El inicio pasa su referencia
+    limites -> siguiente = NULL;                                                        // Se pierde la referencia a la lista
+    free(limites);                                                                      // Se libera la memoria del nodo
+    limites = NULL;                                                                      
+    
 };
 
 LISTA* crearLista(int tam)                                                              // Recibe el tamaño de las areas de la lista
@@ -197,7 +230,7 @@ void imprimirLista(LISTA* lista)
         
         while (corredor != NULL)                                                        // Se continua mientras corredor apunte a un nodo
         {
-            printf(" %c %d", '<', corredor -> inicio);                                  // Imprime la siguiente area
+            printf(" %c%c %d", '<', '-', corredor -> inicio);                                  // Imprime la siguiente area
             corredor = corredor -> siguiente;                                           // Avanzamos al siguiente nodo
         };
 
@@ -345,19 +378,17 @@ void dividirNodo(int tam)                                                       
 
         if (areasLibres[i] -> inicio == NULL)                                           // Si la lista esta vacia, se solicita al siguiente tamaño una particion
             dividirNodo(tam*2);
-        else                                                                            // Hay al menos una particion disponible
-        {
-            // Se crean los nuevos nodos para colocar en la lista
-            NODO* nodoIzquierdo = crearNodo(areasLibres[i] -> inicio -> inicio, (areasLibres[i] -> inicio -> inicio + tam/2) - 1, NULL);
-            NODO* nodoDerecho = crearNodo((areasLibres[i] -> inicio -> inicio + tam/2), (areasLibres[i] -> inicio -> inicio + tam) - 1, NULL); 
+        
+        // Se crean los nuevos nodos para colocar en la lista
+        NODO* nodoIzquierdo = crearNodo(areasLibres[i] -> inicio -> inicio, (areasLibres[i] -> inicio -> inicio + tam/2) - 1, NULL);
+        NODO* nodoDerecho = crearNodo((areasLibres[i] -> inicio -> inicio + tam/2), (areasLibres[i] -> inicio -> inicio + tam) - 1, NULL); 
 
-            // Se mandan a la lista en orden para falicitar su agregamiento
-            enlistar(areasLibres[i-1], nodoDerecho);
-            enlistar(areasLibres[i-1], nodoIzquierdo);
+        // Se mandan a la lista en orden para falicitar su agregamiento
+        enlistar(areasLibres[i-1], nodoDerecho);
+        enlistar(areasLibres[i-1], nodoIzquierdo);
 
-            // Se elimina el nodo original divido
-            borrarNodo(areasLibres[i], areasLibres[i] -> inicio -> inicio);
-        };
+        // Se elimina el nodo original divido
+        borrarNodo(areasLibres[i], areasLibres[i] -> inicio -> inicio);
 
     };
 
@@ -372,6 +403,7 @@ int LeerProcesos(int idProceso,int numpags, char a[30]){
     }
     while (feof(flujo)==0){                                                             // Inicia la lectura del archivo
         fscanf(flujo, "%d%d", &idProceso, &numpags);
+        colocarEnMemoria(idProceso, numpags);                                           // Envía la solicitud de area a el vector
         printf("%d %d\n", idProceso, numpags);
     }
 
@@ -385,6 +417,80 @@ int LeerSigProcesos(int idProceso,int numpags, char a[30]){
     scanf("%s",a);                                                                      // Recibe el nombre del archivo e inicia la lectura del mismo
     return LeerProcesos(idProceso, numpags, a);                                         // En caso de haber un error
 }
+
+void eliminarProceso(int idProceso)                                                     // Recibe proceso a remover de la memoria
+{
+    int inicio = -1, tam = 0;                                                           // Registros del proceso
+    
+    for (int i = 0; i < 16; ++i)
+    {
+        if (memoriaReal[i] == idProceso)                                                // Cuando el id del proceso a borrar corresponde con el reservado en memoria
+        {
+            if (inicio == -1)                                                           // Se guarda la primer aparicion 
+                inicio = i;
+            
+            memoriaReal[i] = 0;                                                         // Se elimina el espacio en memoria para el proceso
+            ++tam;                                                                      // Se aumenta en 1 el tamaño del proceso
+        };
+    };
+     
+    NODO* nuevo_espacio = crearNodo(inicio, inicio + tam - 1, NULL);                    // Se crea el nodo con el espacio liberado por el
+
+    for(int i = 0; i < 5; ++i)                                                          // Buscamos la lista correspondiente al tamaño
+    {
+        if (areasLibres[i] -> tam == tam)
+            enlistar(areasLibres[i], nuevo_espacio);                                    // Se agrega el nodo a la lista
+    };
+
+    nuevo_espacio = NULL;                                                               // Perdemos la referencia al nodo
+
+    unirAreasLibres();                                                                  // Reunifica los espacios contiguos
+};
+
+void unirAreasLibres()                                                                  // Unifica las areas separadas
+{   
+    // Nodos auxiliares a la unifiacion
+    NODO* nodo_izquierdo;                                                               // Posible nodo izquierdo para la union
+    NODO* nodo_derecho;                                                                 // Posible nodo derecho para la union
+    NODO* nodo_unificado;                                                               // Nuevo nodo resultante
+
+    int hubo_union = 0;                                                                 // Notifica cuando dos areas contiguas se unificaron
+
+    for(int i = 0; i < 5; ++i)                                                          // Recorremos las listas para buscar bloques unificables
+    {
+        if ((esVacia(areasLibres[i])) || 
+            (areasLibres[i] -> inicio -> siguiente == NULL))                            // Si no hay al menos dos nodos...
+            continue;                                                                   // ... pasamos a la siguiente lista
+        
+        // Solo se ejecuta si la lista tiene 2 nodos
+        nodo_izquierdo = areasLibres[i] -> inicio;
+        nodo_derecho = areasLibres[i] -> inicio -> siguiente;
+
+        do { // Validamos que sea un punto de unio valido
+            if ((nodo_derecho -> inicio == areasLibres[i] -> tam) || 
+                (((nodo_derecho -> inicio - areasLibres[i] -> tam)%(areasLibres[i] -> tam*2)) == 0))
+            {
+                hubo_union = 1;
+                break;                                                                  // Se encontró la coincidecnia
+            }
+        } while (nodo_derecho -> siguiente != NULL);                                    // Sigue mientras queden nodos por evaluar;
+
+        // Repetimos la validacion para el ultimo
+        if ((nodo_derecho -> inicio == areasLibres[i] -> tam) || 
+                (((nodo_derecho -> inicio - areasLibres[i] -> tam)%(areasLibres[i] -> tam*2)) == 0))
+                hubo_union = 1;
+
+        if (hubo_union == 1)
+        {   // Se crea el nuevo nodo 
+            nodo_unificado = crearNodo(nodo_izquierdo -> inicio, nodo_derecho -> fin, NULL);
+            enlistar(areasLibres[i+1], nodo_unificado);                                 // Se envia a la lista de tamaño siguiente
+            borrarNodo(areasLibres[i], nodo_derecho -> inicio);                         // Borramos el nodo derecho de la lista
+            borrarNodo(areasLibres[i], nodo_izquierdo -> inicio);                       // Borramos el nodo izquierdo de la lista
+            --i;                                                                        // Repetimos ciclo en esta lista
+            nodo_derecho = nodo_izquierdo = nodo_unificado = NULL;                      // Perdemos la referencia a todos los nodos
+        };
+    };
+};
 
 /* ------ Conclusiones 
 
